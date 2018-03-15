@@ -12,16 +12,15 @@ namespace YearCounter
             Console.WriteLine("Computing Result");
 
             //This call was used to build the names and lifespans for use in selecting the most populated year(s)
-            BuildInitialFile(1000);
+            //BuildInitialFile(1000);
 
             int result = GetMostLivingYear(_defaultPath);
-
-            Console.WriteLine(String.Format("The latest year with the most living people, exluding possible ties, is {0}", result));
 
             Console.Write("\nFinished. Press any key to exit.");
             Console.ReadKey();
         }
 
+        //handles the reading of people in a given file, generating the year with the most people as a result, and outputting data to console as well as a file.
         private static int GetMostLivingYear(string dataPath)
         {
             //living year stores the counts of people living in each year, 0-100 will represent 1900 to 2000
@@ -58,11 +57,32 @@ namespace YearCounter
             //Add the offset back into the highest year so the result will be an actual year.
             highestYear += offset;
 
-            foreach(int count in livingYear)
+            //Quick file writer added, to generate an output for upload that isn't solely in console.
+            FileStream ostream;
+            StreamWriter writer;
+            TextWriter textOut = Console.Out;
+            try
             {
-                Console.WriteLine(String.Format("{0} living: {1}", offset, count));
-                //won't need offset anymore, so reuse it to increment for printing.
-                offset++;
+                ostream = new FileStream(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + @"\Resources\Output.txt", FileMode.OpenOrCreate, FileAccess.Write);
+                writer = new StreamWriter(ostream);
+                Console.SetOut(writer);
+
+                foreach (int count in livingYear)
+                {
+                    Console.WriteLine(String.Format("{0} living: {1}", offset, count));
+                    //won't need offset anymore, so reuse it to increment for printing.
+                    offset++;
+                }
+
+                Console.WriteLine(String.Format("The latest year with the most living people, exluding possible ties, is {0}: {1} people living", highestYear, highestVal));
+                Console.SetOut(textOut);
+                writer.Close();
+                ostream.Close();
+                Console.WriteLine("Output.txt generated to Resources folder.");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Open & write for Output.txt failed: " + e.Message);
             }
 
             return highestYear;
